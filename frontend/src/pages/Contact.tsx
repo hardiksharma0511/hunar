@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, Phone, MapPin, CheckCircle2 } from "lucide-react";
 import api from "../lib/axios";
 import { Button } from "../components/ui/Button";
+import { Recaptcha } from "../components/ui/Recaptcha";
 
 const SUPPORT_EMAIL = "support.hunar@gmail.com";
 
@@ -12,13 +13,14 @@ const Contact = () => {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
     setError("");
     try {
-      await api.post("/contact", { name, email, message });
+      await api.post("/contact", { name, email, message, recaptchaToken });
       // Clear the form so the visitor can send another message right away
       setName("");
       setEmail("");
@@ -78,6 +80,8 @@ const Contact = () => {
             <label className="text-sm font-medium">Message</label>
             <textarea required rows={4} value={message} onChange={(e) => setMessage(e.target.value)} className="w-full mt-1 rounded-lg border border-terracotta/20 bg-ivory px-4 py-2.5 focus:outline-none" />
           </div>
+          <Recaptcha onChange={setRecaptchaToken} />
+
           <Button type="submit" disabled={sending} className="w-full">
             {sending ? "Sending..." : "Send Message"}
           </Button>

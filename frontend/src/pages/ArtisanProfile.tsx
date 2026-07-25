@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { MapPin, Award, Instagram, Facebook, MessageCircle, Globe } from "lucide-react";
+import { MapPin, Award, Instagram, Facebook, MessageCircle, Globe, BadgeCheck } from "lucide-react";
 import api from "../lib/axios";
 import { Artisan, Product } from "../types";
 import { ProductCard } from "../components/product/ProductCard";
@@ -47,7 +47,14 @@ const ArtisanProfile = () => {
           alt={artisan.name}
           className="w-28 h-28 rounded-full object-cover mx-auto border-4 border-ivory shadow-soft"
         />
-        <h1 className="font-display text-3xl mt-5">{artisan.name}</h1>
+        <h1 className="font-display text-3xl mt-5 flex items-center justify-center gap-2">
+          {artisan.name}
+          {artisan.isVerified && (
+            <span title="Verified seller" className="inline-flex items-center gap-1 text-xs font-medium text-olive bg-olive/10 px-2 py-0.5 rounded-full">
+              <BadgeCheck className="w-3.5 h-3.5" /> Verified
+            </span>
+          )}
+        </h1>
         {profile && (
           <>
             <p className="flex items-center justify-center gap-1.5 text-charcoal/60 mt-2">

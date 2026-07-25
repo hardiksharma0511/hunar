@@ -24,7 +24,7 @@ export const CategoryGrid = ({ categories }: { categories: Category[] }) => (
             transition={{ duration: 0.4, delay: i * 0.03 }}
           >
             <Link
-              to={`/products?categorySlug=${cat.slug}`}
+              to={`/products?category=${encodeURIComponent(cat.name)}`}
               className="flex flex-col items-center gap-3 bg-sand/40 hover:bg-sand/70 rounded-clay p-5 text-center transition-colors border border-terracotta/10 h-full"
             >
               <div className="w-14 h-14 rounded-full bg-terracotta/10 flex items-center justify-center">

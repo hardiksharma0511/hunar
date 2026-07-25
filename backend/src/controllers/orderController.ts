@@ -2,6 +2,8 @@ import { Response } from "express";
 import Order from "../models/Order";
 import Cart from "../models/Cart";
 import Product from "../models/Product";
+import User from "../models/User";
+import { sendNewOrderEmail } from "../utils/sendNewOrderEmail";
 import { AuthRequest } from "../types";
 
 // @route POST /api/orders  (buyer checkout)
@@ -60,6 +62,27 @@ export const createOrder = async (req: AuthRequest, res: Response) => {
   cart.items = [];
   await cart.save();
 
+  // Notify each seller whose products are in this order — grouped so each
+  // seller only sees their own items, not the buyer's whole cart.
+  const itemsBySeller = new Map<string, typeof orderItems>();
+  for (const item of orderItems) {
+    const sellerId = item.seller.toString();
+    if (!itemsBySeller.has(sellerId)) itemsBySeller.set(sellerId, []);
+    itemsBySeller.get(sellerId)!.push(item);
+  }
+
+  const sellers = await User.find({ _id: { $in: Array.from(itemsBySeller.keys()) } }).select("name email");
+  await Promise.all(
+    sellers.map((seller) =>
+      sendNewOrderEmail(
+        seller.email,
+        seller.name,
+        order.id,
+        itemsBySeller.get(seller.id)!.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price }))
+      ).catch((err) => console.error(`Failed to send order notification to ${seller.email}:`, err))
+    )
+  );
+
   res.status(201).json({ success: true, order });
 };
 
@@ -75,6 +98,27 @@ export const getSellerOrders = async (req: AuthRequest, res: Response) => {
     .populate("buyer", "name email")
     .sort({ createdAt: -1 });
   res.json({ success: true, orders });
+};
+
+// @route GET /api/orders/seller/unseen-count
+// Powers the notification badge — counts orders placed since the seller
+// last opened their Orders tab, so they know without checking constantly.
+export const getUnseenOrderCount = async (req: AuthRequest, res: Response) => {
+  const user = await User.findById(req.user!.id).select("lastOrdersCheckedAt");
+  const since = user?.lastOrdersCheckedAt || new Date(0);
+
+  const count = await Order.countDocuments({
+    "items.seller": req.user!.id,
+    createdAt: { $gt: since },
+  });
+
+  res.json({ success: true, count });
+};
+
+// @route PUT /api/orders/seller/mark-seen
+export const markOrdersSeen = async (req: AuthRequest, res: Response) => {
+  await User.findByIdAndUpdate(req.user!.id, { lastOrdersCheckedAt: new Date() });
+  res.json({ success: true });
 };
 
 // @route GET /api/orders/:id
@@ -100,6 +144,14 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response) => {
   const isSeller = order.items.some((i) => i.seller.toString() === req.user!.id);
   if (!isSeller) {
     return res.status(403).json({ success: false, message: "Not authorized to update this order" });
+  }
+
+  const effectiveTrackingId = trackingId !== undefined ? trackingId : order.trackingId;
+  if (status === "shipped" && !(effectiveTrackingId && effectiveTrackingId.trim())) {
+    return res.status(400).json({
+      success: false,
+      message: "Please add a tracking ID before marking this order as shipped",
+    });
   }
 
   if (status) order.status = status;

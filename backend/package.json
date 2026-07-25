@@ -7,7 +7,8 @@
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "seed": "ts-node src/seed/seed.ts"
+    "seed": "ts-node src/seed/seed.ts",
+    "promote-admin": "ts-node src/scripts/promoteAdmin.ts"
   },
   "dependencies": {
     "express": "^4.19.2",

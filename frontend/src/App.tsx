@@ -6,6 +6,7 @@ import { WishlistProvider } from "./context/WishlistContext";
 import { Navbar } from "./components/layout/Navbar";
 import { Footer } from "./components/layout/Footer";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { AdminRoute } from "./routes/AdminRoute";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -26,6 +27,12 @@ import AddProduct from "./pages/AddProduct";
 import EditProduct from "./pages/EditProduct";
 import NotFound from "./pages/NotFound";
 import Wishlist from "./pages/Wishlist";
+import VerifyEmail from "./pages/VerifyEmail";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // Wraps every route transition in a gentle fade/slide, kept quick and subtle
 // per the "nothing excessive" animation guidance in the brief.
@@ -48,12 +55,17 @@ const AnimatedRoutes = () => {
         <Route path="/" element={<PageTransition><Home /></PageTransition>} />
         <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
         <Route path="/register" element={<PageTransition><Register /></PageTransition>} />
+        <Route path="/verify-email" element={<PageTransition><VerifyEmail /></PageTransition>} />
+        <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+        <Route path="/reset-password" element={<PageTransition><ResetPassword /></PageTransition>} />
         <Route path="/products" element={<PageTransition><Products /></PageTransition>} />
         <Route path="/products/:id" element={<PageTransition><ProductDetail /></PageTransition>} />
         <Route path="/artisans/:id" element={<PageTransition><ArtisanProfile /></PageTransition>} />
         <Route path="/about" element={<PageTransition><About /></PageTransition>} />
         <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
         <Route path="/become-seller" element={<PageTransition><BecomeSeller /></PageTransition>} />
+        <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
+        <Route path="/privacy" element={<PageTransition><Privacy /></PageTransition>} />
 
         <Route path="/cart" element={<ProtectedRoute><PageTransition><Cart /></PageTransition></ProtectedRoute>} />
         <Route path="/checkout" element={<ProtectedRoute><PageTransition><Checkout /></PageTransition></ProtectedRoute>} />
@@ -65,6 +77,8 @@ const AnimatedRoutes = () => {
         <Route path="/seller/dashboard" element={<ProtectedRoute role="seller"><PageTransition><SellerDashboard /></PageTransition></ProtectedRoute>} />
         <Route path="/seller/products/new" element={<ProtectedRoute role="seller"><PageTransition><AddProduct /></PageTransition></ProtectedRoute>} />
         <Route path="/seller/products/:id/edit" element={<ProtectedRoute role="seller"><PageTransition><EditProduct /></PageTransition></ProtectedRoute>} />
+
+        <Route path="/admin" element={<AdminRoute><PageTransition><AdminDashboard /></PageTransition></AdminRoute>} />
 
         <Route path="*" element={<PageTransition><NotFound /></PageTransition>} />
       </Routes>

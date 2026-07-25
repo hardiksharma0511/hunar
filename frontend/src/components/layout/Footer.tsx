@@ -25,7 +25,7 @@ export const Footer = () => (
         <h4 className="font-display text-lg mb-4">Explore</h4>
         <ul className="space-y-2 text-sm text-ivory/60">
           <li><Link to="/products" className="hover:text-gold">All Products</Link></li>
-          <li><Link to="/products?category=Madhubani" className="hover:text-gold">Traditional Art</Link></li>
+          <li><Link to="/products?category=Traditional Art" className="hover:text-gold">Traditional Art</Link></li>
           <li><Link to="/products?category=Pottery" className="hover:text-gold">Pottery & Ceramics</Link></li>
           <li><Link to="/become-seller" className="hover:text-gold">Become a Seller</Link></li>
         </ul>
@@ -37,6 +37,8 @@ export const Footer = () => (
           <li><Link to="/about" className="hover:text-gold">About Hunar</Link></li>
           <li><Link to="/contact" className="hover:text-gold">Contact Us</Link></li>
           <li><Link to="/profile" className="hover:text-gold">My Orders</Link></li>
+          <li><Link to="/terms" className="hover:text-gold">Terms & Conditions</Link></li>
+          <li><Link to="/privacy" className="hover:text-gold">Privacy Policy</Link></li>
         </ul>
       </div>
 

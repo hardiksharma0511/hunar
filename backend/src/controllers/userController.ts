@@ -26,7 +26,7 @@ export const updateProfile = async (req: AuthRequest, res: Response) => {
 // Public list of sellers for the "Meet Our Artisans" section
 export const getArtisans = async (req: AuthRequest, res: Response) => {
   const artisans = await User.find({ role: "seller" }).select(
-    "name sellerProfile avatar createdAt"
+    "name sellerProfile avatar createdAt isVerified"
   );
   res.json({ success: true, artisans });
 };
@@ -63,11 +63,9 @@ export const removeFromWishlist = async (req: AuthRequest, res: Response) => {
   await user.save();
   res.json({ success: true, wishlist: user.wishlist });
 };
-
-// @route GET /api/users/artisans/:id
 export const getArtisanById = async (req: AuthRequest, res: Response) => {
   const artisan = await User.findOne({ _id: req.params.id, role: "seller" }).select(
-    "name sellerProfile avatar createdAt"
+    "name sellerProfile avatar createdAt isVerified"
   );
   if (!artisan) return res.status(404).json({ success: false, message: "Artisan not found" });
 

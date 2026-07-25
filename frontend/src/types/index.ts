@@ -24,6 +24,8 @@ export interface User {
   phone?: string;
   address?: string;
   sellerProfile?: SellerProfile;
+  isVerified?: boolean;
+  isAdmin?: boolean;
 }
 
 export interface Review {
@@ -44,7 +46,8 @@ export interface Product {
   images: string[];
   category: string;
   categoryName: string;
-  seller: { _id: string; name: string; sellerProfile?: Partial<SellerProfile> } | string;
+  subcategoryName?: string;
+  seller: { _id: string; name: string; isVerified?: boolean; sellerProfile?: Partial<SellerProfile> } | string;
   stock: number;
   materials: string[];
   rating: number;
@@ -111,5 +114,6 @@ export interface Artisan {
   name: string;
   avatar?: string;
   sellerProfile?: SellerProfile;
+  isVerified?: boolean;
   createdAt: string;
 }

@@ -74,7 +74,15 @@ const SellerDashboard = () => {
         {(["products", "orders"] as const).map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => {
+              setTab(t);
+              if (t === "orders") {
+                api
+                  .put("/orders/seller/mark-seen")
+                  .then(() => window.dispatchEvent(new Event("hunar:orders-seen")))
+                  .catch(() => {});
+              }
+            }}
             className={`pb-3 text-sm font-medium capitalize border-b-2 -mb-px ${tab === t ? "border-terracotta text-terracotta" : "border-transparent text-charcoal/50"}`}
           >
             {t === "products" ? "My Products" : "Orders"}

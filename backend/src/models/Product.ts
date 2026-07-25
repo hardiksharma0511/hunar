@@ -16,6 +16,7 @@ export interface IProduct extends Document {
   images: string[];
   category: Types.ObjectId;
   categoryName: string;
+  subcategoryName?: string;
   seller: Types.ObjectId;
   stock: number;
   materials: string[];
@@ -45,6 +46,7 @@ const productSchema = new Schema<IProduct>(
     images: [{ type: String, required: true }],
     category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
     categoryName: { type: String, required: true },
+    subcategoryName: { type: String, default: "" },
     seller: { type: Schema.Types.ObjectId, ref: "User", required: true },
     stock: { type: Number, required: true, default: 1, min: 0 },
     materials: [{ type: String }],
@@ -56,6 +58,6 @@ const productSchema = new Schema<IProduct>(
   { timestamps: true }
 );
 
-productSchema.index({ name: "text", description: "text", categoryName: "text" });
+productSchema.index({ name: "text", description: "text", categoryName: "text", subcategoryName: "text" });
 
 export default model<IProduct>("Product", productSchema);

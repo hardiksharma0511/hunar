@@ -1,6 +1,7 @@
 import { Response } from "express";
 import Product from "../models/Product";
 import User from "../models/User";
+import Category from "../models/Category";
 import { AuthRequest } from "../types";
 
 // @route GET /api/products
@@ -72,13 +73,16 @@ export const getFeaturedProducts = async (req: AuthRequest, res: Response) => {
 // @route GET /api/products/:id
 export const getProductById = async (req: AuthRequest, res: Response) => {
   const product = await Product.findById(req.params.id)
-    .populate("seller", "name sellerProfile avatar")
+    .populate("seller", "name sellerProfile avatar isVerified")
     .populate("reviews.user", "name avatar");
 
   if (!product) return res.status(404).json({ success: false, message: "Product not found" });
 
   const related = await Product.find({
-    categoryName: product.categoryName,
+    $or: [
+      { subcategoryName: product.subcategoryName || "__none__" },
+      { categoryName: product.categoryName },
+    ],
     _id: { $ne: product._id },
   }).limit(4);
 
@@ -87,11 +91,20 @@ export const getProductById = async (req: AuthRequest, res: Response) => {
 
 // @route POST /api/products  (seller only)
 export const createProduct = async (req: AuthRequest, res: Response) => {
-  const { name, description, price, discountPrice, images, category, categoryName, stock, materials, isFeatured } =
+  const { name, description, price, discountPrice, images, category, subcategoryName, stock, materials, isFeatured } =
     req.body;
 
   if (!images || images.length === 0) {
     return res.status(400).json({ success: false, message: "At least one product image is required" });
+  }
+
+  // The category dropdown gives the parent Category's ID, and we look up
+  // its real name here rather than trusting a client-supplied string —
+  // this is what previously let products get mis-tagged with a subcategory
+  // name in the field that category browsing actually filters on.
+  const categoryDoc = await Category.findById(category);
+  if (!categoryDoc) {
+    return res.status(400).json({ success: false, message: "Please select a valid category" });
   }
 
   const product = await Product.create({
@@ -101,7 +114,8 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
     discountPrice,
     images,
     category,
-    categoryName,
+    categoryName: categoryDoc.name,
+    subcategoryName: subcategoryName || "",
     stock,
     materials,
     isFeatured: !!isFeatured,
@@ -120,7 +134,18 @@ export const updateProduct = async (req: AuthRequest, res: Response) => {
     return res.status(403).json({ success: false, message: "You can only edit your own products" });
   }
 
-  const fields = ["name", "description", "price", "discountPrice", "images", "category", "categoryName", "stock", "materials", "isFeatured"];
+  // If the category is being changed, re-derive categoryName from the real
+  // Category document rather than accepting a client-supplied string.
+  if (req.body.category !== undefined) {
+    const categoryDoc = await Category.findById(req.body.category);
+    if (!categoryDoc) {
+      return res.status(400).json({ success: false, message: "Please select a valid category" });
+    }
+    product.category = req.body.category;
+    product.categoryName = categoryDoc.name;
+  }
+
+  const fields = ["name", "description", "price", "discountPrice", "images", "subcategoryName", "stock", "materials", "isFeatured"];
   fields.forEach((field) => {
     if (req.body[field] !== undefined) (product as any)[field] = req.body[field];
   });

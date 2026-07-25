@@ -5,12 +5,14 @@ import { useAuth } from "../context/AuthContext";
 import api from "../lib/axios";
 import { Order } from "../types";
 import { Button } from "../components/ui/Button";
+import { AvatarUploader } from "../components/ui/AvatarUploader";
 
 const Profile = () => {
   const { user, logout, updateUser } = useAuth();
   const [name, setName] = useState(user?.name || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [address, setAddress] = useState(user?.address || "");
+  const [photo, setPhoto] = useState(user?.avatar || user?.sellerProfile?.photo || "");
   const [instagram, setInstagram] = useState(user?.sellerProfile?.socialLinks?.instagram || "");
   const [facebook, setFacebook] = useState(user?.sellerProfile?.socialLinks?.facebook || "");
   const [whatsapp, setWhatsapp] = useState(user?.sellerProfile?.socialLinks?.whatsapp || "");
@@ -30,10 +32,12 @@ const Profile = () => {
     e.preventDefault();
     setSaving(true);
     setSaved(false);
-    const payload: any = { name, phone, address };
+    // Profile photo applies to every user, buyer or seller.
+    const payload: any = { name, phone, address, avatar: photo };
     if (user.role === "seller") {
       payload.sellerProfile = {
         ...user.sellerProfile,
+        photo,
         socialLinks: { instagram, facebook, whatsapp, website },
       };
     }
@@ -59,6 +63,12 @@ const Profile = () => {
       <div className="grid lg:grid-cols-[320px,1fr] gap-10">
         <form onSubmit={handleSave} className="bg-sand/40 paper-texture rounded-clay p-6 space-y-4 h-fit">
           <h2 className="font-display text-xl flex items-center gap-2"><Settings className="w-5 h-5" /> Profile Details</h2>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block">Your Photo</label>
+            <AvatarUploader value={photo} onChange={setPhoto} fallbackLabel="photo" />
+          </div>
+
           <div>
             <label className="text-sm font-medium">Name</label>
             <input value={name} onChange={(e) => setName(e.target.value)} className="w-full mt-1 rounded-lg border border-terracotta/20 bg-ivory px-4 py-2.5 focus:outline-none" />

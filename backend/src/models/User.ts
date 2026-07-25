@@ -25,6 +25,14 @@ export interface IUser extends Document {
     };
   };
   wishlist: Types.ObjectId[];
+  // Email verification (OTP-based, sent via Gmail SMTP)
+  isVerified: boolean;
+  emailOtp?: string;
+  emailOtpExpires?: Date;
+  // Platform moderation
+  isAdmin: boolean;
+  isBlocked: boolean;
+  lastOrdersCheckedAt?: Date;
   comparePassword(candidate: string): Promise<boolean>;
   createdAt: Date;
 }
@@ -53,6 +61,12 @@ const userSchema = new Schema<IUser>(
       },
     },
     wishlist: [{ type: Schema.Types.ObjectId, ref: "Product" }],
+    isVerified: { type: Boolean, default: false },
+    emailOtp: { type: String, select: false },
+    emailOtpExpires: { type: Date, select: false },
+    isAdmin: { type: Boolean, default: false },
+    isBlocked: { type: Boolean, default: false },
+    lastOrdersCheckedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

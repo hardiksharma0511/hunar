@@ -136,6 +136,7 @@ const seed = async () => {
       email: `${a.name.toLowerCase().replace(/[^a-z]+/g, ".")}@hunar.demo`,
       password: "password123", // hashed automatically by the pre-save hook
       role: "seller",
+      isVerified: true,
       avatar: img(a.name, "D97A2B", "F8F3EA"),
       phone: `9${(800000000 + i * 111111).toString().slice(0, 9)}`,
       address: a.city,
@@ -156,6 +157,7 @@ const seed = async () => {
     email: "buyer@hunar.demo",
     password: "password123",
     role: "buyer",
+    isVerified: true,
     address: "Connaught Place, New Delhi",
   });
 

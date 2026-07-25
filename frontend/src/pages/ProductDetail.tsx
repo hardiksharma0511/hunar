@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { MapPin, ShoppingBag, ShieldCheck, Truck, Heart, HandHeart } from "lucide-react";
+import { MapPin, ShoppingBag, ShieldCheck, Truck, Heart, HandHeart, BadgeCheck, Instagram, Facebook, MessageCircle, Globe } from "lucide-react";
 import api from "../lib/axios";
 import { Product } from "../types";
 import { Rating } from "../components/ui/Rating";
@@ -99,7 +99,9 @@ const ProductDetail = () => {
 
         {/* Info */}
         <div>
-          <p className="text-sm text-saffron font-medium">{product.categoryName}</p>
+          <p className="text-sm text-saffron font-medium">
+            {product.subcategoryName ? `${product.categoryName} · ${product.subcategoryName}` : product.categoryName}
+          </p>
           <h1 className="font-display text-3xl md:text-4xl mt-1">{product.name}</h1>
           <div className="mt-3"><Rating value={product.rating} count={product.numReviews} /></div>
 
@@ -164,7 +166,14 @@ const ProductDetail = () => {
           />
           <div>
             <span className="font-script text-xl text-saffron">Meet the Artisan</span>
-            <h3 className="font-display text-2xl mt-1">{seller.name}</h3>
+            <h3 className="font-display text-2xl mt-1 flex items-center gap-2">
+              {seller.name}
+              {seller.isVerified && (
+                <span title="Verified seller" className="inline-flex items-center gap-1 text-xs font-medium text-olive bg-olive/10 px-2 py-0.5 rounded-full">
+                  <BadgeCheck className="w-3.5 h-3.5" /> Verified
+                </span>
+              )}
+            </h3>
             {seller.sellerProfile && (
               <>
                 <p className="flex items-center gap-1 text-sm text-charcoal/60 mt-1">
@@ -172,6 +181,45 @@ const ProductDetail = () => {
                 </p>
                 <p className="text-sm text-terracotta font-medium mt-1">{seller.sellerProfile.specialization}</p>
                 <p className="text-charcoal/70 mt-3 leading-relaxed">{seller.sellerProfile.story}</p>
+
+                {/* Direct contact — for buyers who want more info before purchasing */}
+                {(() => {
+                  const social = seller.sellerProfile.socialLinks;
+                  const toLink = (platform: "instagram" | "facebook" | "website" | "whatsapp", value: string) => {
+                    if (value.startsWith("http")) return value;
+                    if (platform === "whatsapp") return `https://wa.me/${value.replace(/[^0-9]/g, "")}`;
+                    return `https://${value}`;
+                  };
+                  const hasSocial = social && (social.instagram || social.facebook || social.whatsapp || social.website);
+                  if (!hasSocial) return null;
+                  return (
+                    <div className="mt-4">
+                      <p className="text-xs font-medium text-charcoal/50 uppercase tracking-wide mb-2">Have a question? Contact directly</p>
+                      <div className="flex items-center gap-3">
+                        {social?.instagram && (
+                          <a href={toLink("instagram", social.instagram)} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-9 h-9 rounded-full bg-terracotta/10 flex items-center justify-center hover:bg-terracotta hover:text-ivory transition-colors">
+                            <Instagram className="w-4 h-4" />
+                          </a>
+                        )}
+                        {social?.whatsapp && (
+                          <a href={toLink("whatsapp", social.whatsapp)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="w-9 h-9 rounded-full bg-terracotta/10 flex items-center justify-center hover:bg-terracotta hover:text-ivory transition-colors">
+                            <MessageCircle className="w-4 h-4" />
+                          </a>
+                        )}
+                        {social?.facebook && (
+                          <a href={toLink("facebook", social.facebook)} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-9 h-9 rounded-full bg-terracotta/10 flex items-center justify-center hover:bg-terracotta hover:text-ivory transition-colors">
+                            <Facebook className="w-4 h-4" />
+                          </a>
+                        )}
+                        {social?.website && (
+                          <a href={toLink("website", social.website)} target="_blank" rel="noopener noreferrer" aria-label="Website" className="w-9 h-9 rounded-full bg-terracotta/10 flex items-center justify-center hover:bg-terracotta hover:text-ivory transition-colors">
+                            <Globe className="w-4 h-4" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </>
             )}
             <Link to={`/artisans/${seller._id}`} className="inline-block mt-4 text-sm font-medium text-terracotta border-b border-terracotta/40">

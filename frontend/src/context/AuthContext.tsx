@@ -7,6 +7,7 @@ interface RegisterPayload {
   email: string;
   password: string;
   role: "buyer" | "seller";
+  recaptchaToken?: string;
   sellerProfile?: {
     city: string;
     craft: string;
@@ -26,7 +27,13 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
+  // Registration no longer logs the user in immediately — it sends an OTP
+  // and the caller should route to the verify-email page.
+  register: (payload: RegisterPayload) => Promise<{ email: string }>;
+  verifyOtp: (email: string, otp: string) => Promise<void>;
+  resendOtp: (email: string) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (email: string, otp: string, newPassword: string) => Promise<void>;
   logout: () => void;
   updateUser: (user: User) => void;
 }
@@ -46,6 +53,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, []);
 
+  // If the axios layer detects a stale/expired token (server returned 401),
+  // reflect that in the UI immediately — e.g. the navbar switches back to
+  // "Login / Register" — without forcing a disruptive page navigation.
+  useEffect(() => {
+    const handleSessionExpired = () => setUser(null);
+    window.addEventListener("hunar:session-expired", handleSessionExpired);
+    return () => window.removeEventListener("hunar:session-expired", handleSessionExpired);
+  }, []);
+
   const persist = (token: string, user: User) => {
     localStorage.setItem("hunar_token", token);
     localStorage.setItem("hunar_user", JSON.stringify(user));
@@ -59,6 +75,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const register = async (payload: RegisterPayload) => {
     const { data } = await api.post("/auth/register", payload);
+    return { email: data.email };
+  };
+
+  const verifyOtp = async (email: string, otp: string) => {
+    const { data } = await api.post("/auth/verify-otp", { email, otp });
+    persist(data.token, data.user);
+  };
+
+  const resendOtp = async (email: string) => {
+    await api.post("/auth/resend-otp", { email });
+  };
+
+  const forgotPassword = async (email: string) => {
+    await api.post("/auth/forgot-password", { email });
+  };
+
+  const resetPassword = async (email: string, otp: string, newPassword: string) => {
+    const { data } = await api.post("/auth/reset-password", { email, otp, newPassword });
     persist(data.token, data.user);
   };
 
@@ -74,7 +108,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, verifyOtp, resendOtp, forgotPassword, resetPassword, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

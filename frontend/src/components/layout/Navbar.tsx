@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Search, ShoppingBag, User as UserIcon, Menu, X, LogOut, LayoutDashboard, Package, ChevronDown, Heart } from "lucide-react";
+import { Search, ShoppingBag, User as UserIcon, Menu, X, LogOut, LayoutDashboard, Package, ChevronDown, Heart, ShieldCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
+import api from "../../lib/axios";
 
 const navLinks = [
   { to: "/", label: "Home" },
@@ -20,6 +21,31 @@ export const Navbar = () => {
   const { itemCount } = useCart();
   const navigate = useNavigate();
   const accountRef = useRef<HTMLDivElement>(null);
+  const [unseenOrders, setUnseenOrders] = useState(0);
+
+  // Poll for new orders every 60s while a seller has the site open, so a
+  // fresh order shows up as a badge without needing a page refresh.
+  useEffect(() => {
+    if (!user || user.role !== "seller") {
+      setUnseenOrders(0);
+      return;
+    }
+    const check = () => {
+      api.get("/orders/seller/unseen-count").then((res) => setUnseenOrders(res.data.count)).catch(() => {});
+    };
+    check();
+    const interval = setInterval(check, 60000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Clears the badge the instant the seller opens their Orders tab, instead
+  // of waiting for the next 60s poll — SellerDashboard fires this event
+  // right after it tells the server the orders have been seen.
+  useEffect(() => {
+    const clearBadge = () => setUnseenOrders(0);
+    window.addEventListener("hunar:orders-seen", clearBadge);
+    return () => window.removeEventListener("hunar:orders-seen", clearBadge);
+  }, []);
 
   // Close the account dropdown on outside click
   useEffect(() => {
@@ -102,11 +128,18 @@ export const Navbar = () => {
             <div className="relative hidden sm:block" ref={accountRef}>
               <button
                 onClick={() => setAccountOpen(!accountOpen)}
-                className="flex items-center gap-1.5 text-sm font-medium text-charcoal/80 hover:text-terracotta"
+                className="relative flex items-center gap-1.5 text-sm font-medium text-charcoal/80 hover:text-terracotta"
               >
-                <UserIcon className="w-5 h-5" />
+                {user.avatar ? (
+                  <img src={user.avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
+                ) : (
+                  <UserIcon className="w-5 h-5" />
+                )}
                 {user.name.split(" ")[0]}
                 <ChevronDown className="w-3.5 h-3.5" />
+                {unseenOrders > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-terracotta rounded-full border-2 border-ivory" />
+                )}
               </button>
 
               {accountOpen && (
@@ -115,9 +148,16 @@ export const Navbar = () => {
                     <Link
                       to="/seller/dashboard"
                       onClick={() => setAccountOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-charcoal/80 hover:bg-sand/50"
+                      className="flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-charcoal/80 hover:bg-sand/50"
                     >
-                      <LayoutDashboard className="w-4 h-4" /> Seller Dashboard
+                      <span className="flex items-center gap-2">
+                        <LayoutDashboard className="w-4 h-4" /> Seller Dashboard
+                      </span>
+                      {unseenOrders > 0 && (
+                        <span className="bg-terracotta text-ivory text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
+                          {unseenOrders}
+                        </span>
+                      )}
                     </Link>
                   ) : (
                     <Link
@@ -142,6 +182,15 @@ export const Navbar = () => {
                   >
                     <UserIcon className="w-4 h-4" /> Profile Settings
                   </Link>
+                  {user.isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setAccountOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-sm text-charcoal/80 hover:bg-sand/50"
+                    >
+                      <ShieldCheck className="w-4 h-4" /> Admin Dashboard
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 w-full text-left border-t border-terracotta/10 mt-1"
@@ -195,9 +244,14 @@ export const Navbar = () => {
                 <Link
                   to={user.role === "seller" ? "/seller/dashboard" : "/orders"}
                   onClick={() => setOpen(false)}
-                  className="text-terracotta font-medium"
+                  className="flex items-center gap-2 text-terracotta font-medium"
                 >
                   {user.role === "seller" ? "Seller Dashboard" : "My Orders"}
+                  {user.role === "seller" && unseenOrders > 0 && (
+                    <span className="bg-terracotta text-ivory text-[10px] min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center">
+                      {unseenOrders}
+                    </span>
+                  )}
                 </Link>
                 <Link to="/wishlist" onClick={() => setOpen(false)} className="text-charcoal/80 font-medium">
                   Wishlist
@@ -205,6 +259,11 @@ export const Navbar = () => {
                 <Link to="/profile" onClick={() => setOpen(false)} className="text-charcoal/80 font-medium">
                   Profile Settings
                 </Link>
+                {user.isAdmin && (
+                  <Link to="/admin" onClick={() => setOpen(false)} className="text-charcoal/80 font-medium">
+                    Admin Dashboard
+                  </Link>
+                )}
                 <button onClick={handleLogout} className="flex items-center gap-2 text-red-600 font-medium text-left">
                   <LogOut className="w-4 h-4" /> Logout
                 </button>

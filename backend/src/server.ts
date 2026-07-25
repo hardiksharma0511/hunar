@@ -16,6 +16,7 @@ import cartRoutes from "./routes/cartRoutes";
 import orderRoutes from "./routes/orderRoutes";
 import uploadRoutes from "./routes/uploadRoutes";
 import contactRoutes from "./routes/contactRoutes";
+import adminRoutes from "./routes/adminRoutes";
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/admin", adminRoutes);
 
 // --- Error handling (must be last) ---
 app.use(notFound);

@@ -13,7 +13,7 @@ const schema = z.object({
   price: z.string().min(1, "Price is required"),
   discountPrice: z.string().optional(),
   category: z.string().min(1, "Please choose a category"),
-  categoryName: z.string().min(1, "Please choose a subcategory"),
+  subcategoryName: z.string().min(1, "Please choose a subcategory"),
   stock: z.string().min(1, "Stock is required"),
   materials: z.string().optional(),
   isFeatured: z.boolean().optional(),
@@ -41,7 +41,7 @@ export const ProductForm = ({ initial, onSubmit, submitLabel }: Props) => {
           price: String(initial.price),
           discountPrice: initial.discountPrice ? String(initial.discountPrice) : "",
           category: typeof initial.category === "string" ? initial.category : "",
-          categoryName: initial.categoryName,
+          subcategoryName: initial.subcategoryName || "",
           stock: String(initial.stock),
           materials: initial.materials?.join(", "),
           isFeatured: initial.isFeatured,
@@ -70,7 +70,7 @@ export const ProductForm = ({ initial, onSubmit, submitLabel }: Props) => {
         price: Number(data.price),
         discountPrice: data.discountPrice ? Number(data.discountPrice) : undefined,
         category: data.category,
-        categoryName: data.categoryName,
+        subcategoryName: data.subcategoryName,
         stock: Number(data.stock),
         materials: data.materials ? data.materials.split(",").map((m) => m.trim()).filter(Boolean) : [],
         isFeatured: !!data.isFeatured,
@@ -122,11 +122,11 @@ export const ProductForm = ({ initial, onSubmit, submitLabel }: Props) => {
         </div>
         <div>
           <label className="text-sm font-medium">Subcategory</label>
-          <select {...register("categoryName")} className="w-full mt-1 rounded-lg border border-terracotta/20 bg-ivory px-4 py-2.5 focus:outline-none">
+          <select {...register("subcategoryName")} className="w-full mt-1 rounded-lg border border-terracotta/20 bg-ivory px-4 py-2.5 focus:outline-none">
             <option value="">Select subcategory</option>
             {selectedCategory?.subcategories.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
-          {errors.categoryName && <p className="text-xs text-red-600 mt-1">{errors.categoryName.message}</p>}
+          {errors.subcategoryName && <p className="text-xs text-red-600 mt-1">{errors.subcategoryName.message}</p>}
         </div>
       </div>
 

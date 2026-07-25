@@ -1,7 +1,15 @@
 import { Router } from "express";
-import { asyncHandler } from "../utils/asyncHandler";
 import { body } from "express-validator";
-import { register, login, getMe } from "../controllers/authController";
+import { asyncHandler } from "../utils/asyncHandler";
+import {
+  register,
+  login,
+  getMe,
+  verifyOtp,
+  resendOtp,
+  forgotPassword,
+  resetPassword,
+} from "../controllers/authController";
 import { protect } from "../middleware/auth";
 import { validate } from "../middleware/validate";
 
@@ -25,6 +33,10 @@ router.post(
   asyncHandler(login)
 );
 
+router.post("/verify-otp", asyncHandler(verifyOtp));
+router.post("/resend-otp", asyncHandler(resendOtp));
+router.post("/forgot-password", asyncHandler(forgotPassword));
+router.post("/reset-password", asyncHandler(resetPassword));
 router.get("/me", protect, asyncHandler(getMe));
 
 export default router;

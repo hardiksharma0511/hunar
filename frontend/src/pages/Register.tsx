@@ -5,8 +5,9 @@ import { z } from "zod";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
+import { AvatarUploader } from "../components/ui/AvatarUploader";
+import { Recaptcha } from "../components/ui/Recaptcha";
 import { WarliDivider } from "../components/decorative/PatternDivider";
-
 const schema = z
   .object({
     name: z.string().min(2, "Name is required"),
@@ -34,6 +35,8 @@ const Register = () => {
   const navigate = useNavigate();
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [photo, setPhoto] = useState("");
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -46,16 +49,18 @@ const Register = () => {
     setServerError("");
     setLoading(true);
     try {
-      await registerUser({
+      const { email } = await registerUser({
         name: data.name,
         email: data.email,
         password: data.password,
         role: data.role,
+        recaptchaToken: recaptchaToken || undefined,
         sellerProfile:
           data.role === "seller"
             ? {
                 city: data.city || "",
                 craft: data.craft || "",
+                photo,
                 specialization: data.specialization || "",
                 story: data.story || "",
                 yearsOfExperience: Number(data.yearsOfExperience) || 0,
@@ -68,7 +73,7 @@ const Register = () => {
               }
             : undefined,
       });
-      navigate("/");
+      navigate("/verify-email", { state: { email } });
     } catch (err: any) {
       setServerError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
@@ -85,8 +90,6 @@ const Register = () => {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="bg-sand/40 paper-texture rounded-clay p-8 shadow-soft space-y-5">
-        {serverError && <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{serverError}</p>}
-
         <div className="flex gap-4">
           <label className={`flex-1 text-center rounded-lg border py-3 cursor-pointer transition-colors ${role === "buyer" ? "border-terracotta bg-terracotta/10" : "border-terracotta/20"}`}>
             <input type="radio" value="buyer" {...register("role")} className="hidden" />
@@ -120,6 +123,17 @@ const Register = () => {
           <div className="space-y-5 border-t border-terracotta/10 pt-5">
             <p className="text-sm font-medium text-terracotta">Artisan Profile</p>
             <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium block mb-2">
+    Profile Photo (Optional)
+  </label>
+
+  <AvatarUploader
+    value={photo}
+    onChange={setPhoto}
+    fallbackLabel="photo"
+  />
+              </div>
               <div>
                 <label className="text-sm font-medium">City</label>
                 <input {...register("city")} className="w-full mt-1 rounded-lg border border-terracotta/20 bg-ivory px-4 py-2.5 focus:outline-none" placeholder="Ranikhet, Uttarakhand" />
@@ -168,9 +182,17 @@ const Register = () => {
           </div>
         )}
 
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "Creating account..." : "Create Account"}
-        </Button>
+        <Recaptcha onChange={setRecaptchaToken} />
+
+{serverError && (
+  <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
+    {serverError}
+  </p>
+)}
+
+<Button type="submit" disabled={loading} className="w-full">
+  {loading ? "Creating account..." : "Create Account"}
+</Button>
 
         <p className="text-center text-sm text-charcoal/60">
           Already have an account? <Link to="/login" className="text-terracotta font-medium">Login</Link>

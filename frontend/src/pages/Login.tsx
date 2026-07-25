@@ -30,6 +30,10 @@ const Login = () => {
       const redirect = (location.state as any)?.from || "/";
       navigate(redirect);
     } catch (err: any) {
+      if (err.response?.data?.requiresVerification) {
+        navigate("/verify-email", { state: { email: err.response.data.email } });
+        return;
+      }
       setServerError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
@@ -57,6 +61,9 @@ const Login = () => {
           <label className="text-sm font-medium">Password</label>
           <input {...register("password")} type="password" className="w-full mt-1 rounded-lg border border-terracotta/20 bg-ivory px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-terracotta/40" placeholder="••••••••" />
           {errors.password && <p className="text-xs text-red-600 mt-1">{errors.password.message}</p>}
+          <Link to="/forgot-password" className="block text-right text-xs text-terracotta font-medium mt-1.5">
+            Forgot password?
+          </Link>
         </div>
 
         <Button type="submit" disabled={loading} className="w-full">

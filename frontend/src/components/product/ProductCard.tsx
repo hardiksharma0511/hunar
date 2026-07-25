@@ -70,7 +70,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
           </button>
         </div>
         <div className="p-4">
-          <p className="text-xs text-charcoal/50 mb-1">{product.categoryName}</p>
+          <p className="text-xs text-charcoal/50 mb-1">{product.subcategoryName || product.categoryName}</p>
           <h3 className="font-display text-lg leading-snug line-clamp-1">{product.name}</h3>
           {sellerName && <p className="text-xs text-charcoal/50 mt-0.5">by {sellerName}</p>}
           <div className="mt-2"><Rating value={product.rating} count={product.numReviews} /></div>

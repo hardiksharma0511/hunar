@@ -30,9 +30,7 @@ export const ImageUploader = ({ images, onChange, max = 5 }: Props) => {
 
     setUploading(true);
     try {
-      const { data } = await api.post("/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const { data } = await api.post("/upload", formData);
       onChange([...images, ...data.urls]);
     } catch (err: any) {
       setError(

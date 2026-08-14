@@ -5,11 +5,12 @@ import Category from "../models/Category";
 import { AuthRequest } from "../types";
 
 // @route GET /api/products
-// Supports: ?search=&category=&minPrice=&maxPrice=&sort=newest|popular|price_asc|price_desc&page=&limit=
+// Supports: ?search=&category=&state=&minPrice=&maxPrice=&sort=newest|popular|price_asc|price_desc&page=&limit=
 export const getProducts = async (req: AuthRequest, res: Response) => {
   const {
     search,
     category,
+    state,
     minPrice,
     maxPrice,
     sort = "newest",
@@ -18,13 +19,22 @@ export const getProducts = async (req: AuthRequest, res: Response) => {
     seller,
   } = req.query as Record<string, string>;
 
-  const filter: any = {};
+  // Public browsing only ever shows approved listings — pending/rejected
+  // products stay invisible to everyone except their own seller and admins
+  // (see getMyProducts and the admin routes for those views).
+  const filter: any = { status: "approved" };
 
   if (search) {
     filter.$text = { $search: search };
   }
   if (category) {
     filter.categoryName = category;
+  }
+  if (state) {
+    // Loose, case-insensitive match against the seller's city/region so a
+    // search like "Rajasthan" or "Uttarakhand" finds products from sellers
+    // based there, even though the field stores "City, State".
+    filter.sellerCity = { $regex: state, $options: "i" };
   }
   if (seller) {
     filter.seller = seller;
@@ -64,13 +74,18 @@ export const getProducts = async (req: AuthRequest, res: Response) => {
 
 // @route GET /api/products/featured
 export const getFeaturedProducts = async (req: AuthRequest, res: Response) => {
-  const products = await Product.find({ isFeatured: true })
+  const products = await Product.find({ isFeatured: true, status: "approved" })
     .populate("seller", "name sellerProfile.city")
     .limit(8);
   res.json({ success: true, products });
 };
 
 // @route GET /api/products/:id
+// Uses optionalAuth: works for guests, but req.user is populated if a
+// valid token is present. Contact details (WhatsApp/Instagram/etc.) are
+// only included in the response for logged-in users — a guest sees the
+// product fine, just not the seller's direct contact info, which keeps
+// it out of reach of anonymous scraping bots.
 export const getProductById = async (req: AuthRequest, res: Response) => {
   const product = await Product.findById(req.params.id)
     .populate("seller", "name sellerProfile avatar isVerified")
@@ -78,7 +93,25 @@ export const getProductById = async (req: AuthRequest, res: Response) => {
 
   if (!product) return res.status(404).json({ success: false, message: "Product not found" });
 
+  if (product.status !== "approved") {
+    const isOwner = req.user && product.seller && (product.seller as any)._id.toString() === req.user.id;
+    let isAdminUser = false;
+    if (req.user && !isOwner) {
+      const requester = await User.findById(req.user.id).select("isAdmin");
+      isAdminUser = !!requester?.isAdmin;
+    }
+    if (!isOwner && !isAdminUser) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+  }
+
+  const productObj = product.toObject() as any;
+  if (!req.user && productObj.seller?.sellerProfile) {
+    delete productObj.seller.sellerProfile.socialLinks;
+  }
+
   const related = await Product.find({
+    status: "approved",
     $or: [
       { subcategoryName: product.subcategoryName || "__none__" },
       { categoryName: product.categoryName },
@@ -86,7 +119,7 @@ export const getProductById = async (req: AuthRequest, res: Response) => {
     _id: { $ne: product._id },
   }).limit(4);
 
-  res.json({ success: true, product, related });
+  res.json({ success: true, product: productObj, related });
 };
 
 // @route POST /api/products  (seller only)
@@ -107,6 +140,8 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
     return res.status(400).json({ success: false, message: "Please select a valid category" });
   }
 
+  const seller = await User.findById(req.user!.id).select("sellerProfile.city");
+
   const product = await Product.create({
     name,
     description,
@@ -116,13 +151,19 @@ export const createProduct = async (req: AuthRequest, res: Response) => {
     category,
     categoryName: categoryDoc.name,
     subcategoryName: subcategoryName || "",
+    sellerCity: seller?.sellerProfile?.city || "",
     stock,
     materials,
     isFeatured: !!isFeatured,
     seller: req.user!.id,
+    status: "pending", // every new listing is queued for admin review before going live
   });
 
-  res.status(201).json({ success: true, product });
+  res.status(201).json({
+    success: true,
+    product,
+    message: "Your product has been submitted and will appear once approved by our team.",
+  });
 };
 
 // @route PUT /api/products/:id  (owning seller only)
@@ -168,6 +209,8 @@ export const deleteProduct = async (req: AuthRequest, res: Response) => {
 };
 
 // @route GET /api/products/seller/mine  (seller only)
+// Shows every one of the seller's own products regardless of moderation
+// status, so they can see what's pending, approved, or was rejected.
 export const getMyProducts = async (req: AuthRequest, res: Response) => {
   const products = await Product.find({ seller: req.user!.id }).sort({ createdAt: -1 });
   res.json({ success: true, products });

@@ -81,7 +81,6 @@ const ProductDetail = () => {
   return (
     <div className="section-padding container-hunar">
       <div className="grid md:grid-cols-2 gap-10">
-        {/* Images */}
         <div>
           <div className="aspect-square rounded-clay overflow-hidden bg-sand/40 border border-terracotta/10">
             <img src={product.images[activeImage]} alt={product.name} className="w-full h-full object-cover" />
@@ -97,7 +96,6 @@ const ProductDetail = () => {
           )}
         </div>
 
-        {/* Info */}
         <div>
           <p className="text-sm text-saffron font-medium">
             {product.subcategoryName ? `${product.categoryName} · ${product.subcategoryName}` : product.categoryName}
@@ -120,8 +118,6 @@ const ProductDetail = () => {
             </div>
           )}
 
-          {/* Artisan Impact badge — the whole point of Hunar isn't just "handmade",
-              it's that buying here puts money directly in the artisan's hands. */}
           <div className="flex items-center gap-2.5 bg-olive/10 text-olive rounded-lg px-4 py-2.5 mt-4 w-fit">
             <HandHeart className="w-4 h-4 shrink-0" />
             <p className="text-xs font-medium">
@@ -156,7 +152,6 @@ const ProductDetail = () => {
 
       <WarliDivider className="my-14" />
 
-      {/* Meet the Artisan */}
       {seller && (
         <div className="bg-sand/40 paper-texture rounded-clay p-8 grid md:grid-cols-[auto,1fr] gap-6 items-start">
           <img
@@ -182,7 +177,6 @@ const ProductDetail = () => {
                 <p className="text-sm text-terracotta font-medium mt-1">{seller.sellerProfile.specialization}</p>
                 <p className="text-charcoal/70 mt-3 leading-relaxed">{seller.sellerProfile.story}</p>
 
-                {/* Direct contact — for buyers who want more info before purchasing */}
                 {(() => {
                   const social = seller.sellerProfile.socialLinks;
                   const toLink = (platform: "instagram" | "facebook" | "website" | "whatsapp", value: string) => {
@@ -191,6 +185,13 @@ const ProductDetail = () => {
                     return `https://${value}`;
                   };
                   const hasSocial = social && (social.instagram || social.facebook || social.whatsapp || social.website);
+                  if (!user) {
+                    return (
+                      <p className="text-xs text-charcoal/50 mt-4">
+                        <Link to="/login" className="text-terracotta font-medium border-b border-terracotta/40">Log in</Link> to see this artisan's direct contact details.
+                      </p>
+                    );
+                  }
                   if (!hasSocial) return null;
                   return (
                     <div className="mt-4">
@@ -229,7 +230,6 @@ const ProductDetail = () => {
         </div>
       )}
 
-      {/* Reviews */}
       <div className="mt-16">
         <h2 className="font-display text-2xl mb-6">Reviews ({product.numReviews})</h2>
         <div className="space-y-4 mb-8">
@@ -261,7 +261,6 @@ const ProductDetail = () => {
         </form>
       </div>
 
-      {/* Related */}
       {related.length > 0 && (
         <div className="mt-16">
           <h2 className="font-display text-2xl mb-6">Related Products</h2>

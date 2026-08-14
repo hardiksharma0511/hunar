@@ -47,6 +47,9 @@ export interface Product {
   category: string;
   categoryName: string;
   subcategoryName?: string;
+  sellerCity?: string;
+  status?: "pending" | "approved" | "rejected";
+  rejectionReason?: string;
   seller: { _id: string; name: string; isVerified?: boolean; sellerProfile?: Partial<SellerProfile> } | string;
   stock: number;
   materials: string[];

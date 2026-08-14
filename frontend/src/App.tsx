@@ -4,6 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { WishlistProvider } from "./context/WishlistContext";
 import { Navbar } from "./components/layout/Navbar";
+import { OrderNotificationBanner } from "./components/layout/OrderNotificationBanner";
 import { Footer } from "./components/layout/Footer";
 import { ProtectedRoute } from "./routes/ProtectedRoute";
 import { AdminRoute } from "./routes/AdminRoute";
@@ -34,8 +35,6 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import AdminDashboard from "./pages/AdminDashboard";
 
-// Wraps every route transition in a gentle fade/slide, kept quick and subtle
-// per the "nothing excessive" animation guidance in the brief.
 const PageTransition = ({ children }: { children: React.ReactNode }) => (
   <motion.div
     initial={{ opacity: 0, y: 8 }}
@@ -93,6 +92,7 @@ function App() {
         <CartProvider>
           <WishlistProvider>
             <div className="min-h-screen flex flex-col">
+              <OrderNotificationBanner />
               <Navbar />
               <main className="flex-1">
                 <AnimatedRoutes />

@@ -18,70 +18,45 @@ const userResponse = (user: any) => ({
   isAdmin: user.isAdmin,
 });
 
-
-
-
-
-
-
-
 // @route POST /api/auth/register
 export const register = async (req: AuthRequest, res: Response) => {
-  const { name, email, password, role, sellerProfile, recaptchaToken } = req.body;
+  const { name, email, password, role, phone, sellerProfile, recaptchaToken } = req.body;
 
-  // Check if email already exists
-  const existing = await User.findOne({ email });
-
-  if (existing) {
-    return res.status(400).json({
-      success: false,
-      message: "An account with this email already exists",
-    });
-  }
-
-  // Verify reCAPTCHA
   const recaptchaOk = await verifyRecaptcha(recaptchaToken);
-
   if (!recaptchaOk) {
-    return res.status(400).json({
-      success: false,
-      message: "reCAPTCHA verification failed. Please try again.",
-    });
+    return res.status(400).json({ success: false, message: "reCAPTCHA verification failed. Please try again." });
   }
 
-  // Generate OTP
-  const otp = generateOtp();
+  if (role === "seller" && !(phone && phone.trim())) {
+    return res.status(400).json({ success: false, message: "A mobile number is required to register as a seller" });
+  }
 
-  // Create user
+  const existing = await User.findOne({ email });
+  if (existing) {
+    return res.status(400).json({ success: false, message: "An account with this email already exists" });
+  }
+
+  const otp = generateOtp();
   const user = await User.create({
     name,
     email,
     password,
     role: role === "seller" ? "seller" : "buyer",
+    phone: phone || "",
     sellerProfile: role === "seller" ? sellerProfile : undefined,
     emailOtp: otp,
-    emailOtpExpires: new Date(
-      Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000
-    ),
+    emailOtpExpires: new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000),
   });
 
-  // Send OTP
   await sendOtpEmail(email, name, otp);
 
-  // Success response
-  return res.status(201).json({
+  res.status(201).json({
     success: true,
     requiresVerification: true,
     email: user.email,
     message: "We've sent a verification code to your email.",
   });
 };
-
-
-
-
-
-
 
 // @route POST /api/auth/verify-otp
 export const verifyOtp = async (req: AuthRequest, res: Response) => {

@@ -151,6 +151,12 @@ export const ProductForm = ({ initial, onSubmit, submitLabel }: Props) => {
         Feature this product on the homepage
       </label>
 
+      {!initial && (
+        <p className="text-xs text-charcoal/50 bg-sand/60 rounded-lg px-3 py-2">
+          New listings are reviewed by our team before they go live — this usually takes less than a day.
+        </p>
+      )}
+
       <Button type="submit" disabled={submitting} className="w-full">
         {submitting ? "Saving..." : submitLabel}
       </Button>

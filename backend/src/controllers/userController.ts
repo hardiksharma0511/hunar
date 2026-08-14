@@ -63,15 +63,25 @@ export const removeFromWishlist = async (req: AuthRequest, res: Response) => {
   await user.save();
   res.json({ success: true, wishlist: user.wishlist });
 };
+
+// @route GET /api/users/artisans/:id
+// Uses optionalAuth: contact links (WhatsApp/Instagram/etc.) are only
+// included for logged-in visitors, same reasoning as on the product page —
+// keeps them out of reach of anonymous scraping.
 export const getArtisanById = async (req: AuthRequest, res: Response) => {
   const artisan = await User.findOne({ _id: req.params.id, role: "seller" }).select(
     "name sellerProfile avatar createdAt isVerified"
   );
   if (!artisan) return res.status(404).json({ success: false, message: "Artisan not found" });
 
-  const products = await Product.find({ seller: artisan._id }).select(
+  const artisanObj = artisan.toObject() as any;
+  if (!req.user && artisanObj.sellerProfile) {
+    delete artisanObj.sellerProfile.socialLinks;
+  }
+
+  const products = await Product.find({ seller: artisan._id, status: "approved" }).select(
     "name price discountPrice images rating"
   );
 
-  res.json({ success: true, artisan, products });
+  res.json({ success: true, artisan: artisanObj, products });
 };

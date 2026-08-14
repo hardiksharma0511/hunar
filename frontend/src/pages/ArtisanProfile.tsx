@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { MapPin, Award, Instagram, Facebook, MessageCircle, Globe, BadgeCheck } from "lucide-react";
 import api from "../lib/axios";
 import { Artisan, Product } from "../types";
 import { ProductCard } from "../components/product/ProductCard";
 import { Spinner } from "../components/ui/Spinner";
 import { WarliDivider } from "../components/decorative/PatternDivider";
+import { useAuth } from "../context/AuthContext";
 
 const ArtisanProfile = () => {
   const { id } = useParams();
+  const { user } = useAuth();
   const [artisan, setArtisan] = useState<Artisan | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +33,6 @@ const ArtisanProfile = () => {
   const social = profile?.socialLinks;
   const hasSocial = social && (social.instagram || social.facebook || social.whatsapp || social.website);
 
-  // Normalizes a handle/url/phone into a working link for each platform
   const toLink = (platform: "instagram" | "facebook" | "website" | "whatsapp", value: string) => {
     if (!value) return "#";
     if (value.startsWith("http")) return value;
@@ -66,7 +67,13 @@ const ArtisanProfile = () => {
             <p className="text-charcoal/70 mt-5 leading-relaxed">{profile.story}</p>
             <p className="text-sm text-charcoal/50 mt-4 italic">Specializes in {profile.specialization}</p>
 
-            {hasSocial && (
+            {!user && (
+              <p className="text-xs text-charcoal/50 mt-4">
+                <Link to="/login" className="text-terracotta font-medium border-b border-terracotta/40">Log in</Link> to see this artisan's direct contact details.
+              </p>
+            )}
+
+            {user && hasSocial && (
               <div className="flex items-center justify-center gap-4 mt-6">
                 {social?.instagram && (
                   <a href={toLink("instagram", social.instagram)} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-10 h-10 rounded-full bg-terracotta/10 flex items-center justify-center hover:bg-terracotta hover:text-ivory transition-colors">

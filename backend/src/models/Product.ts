@@ -18,12 +18,20 @@ export interface IProduct extends Document {
   categoryName: string;
   subcategoryName?: string;
   seller: Types.ObjectId;
+  sellerCity?: string; // denormalized from the seller's profile at listing time, so
+                        // buyers can search/filter products by region (e.g. "Rajasthan")
+                        // without an extra lookup on every product search.
   stock: number;
   materials: string[];
   rating: number;
   numReviews: number;
   reviews: IReview[];
   isFeatured: boolean;
+  // Moderation: every new listing starts pending and only becomes publicly
+  // visible once an admin approves it, so spam/inappropriate uploads never
+  // reach the storefront.
+  status: "pending" | "approved" | "rejected";
+  rejectionReason?: string;
   createdAt: Date;
 }
 
@@ -48,16 +56,26 @@ const productSchema = new Schema<IProduct>(
     categoryName: { type: String, required: true },
     subcategoryName: { type: String, default: "" },
     seller: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    sellerCity: { type: String, default: "" },
     stock: { type: Number, required: true, default: 1, min: 0 },
     materials: [{ type: String }],
     rating: { type: Number, default: 0 },
     numReviews: { type: Number, default: 0 },
     reviews: [reviewSchema],
     isFeatured: { type: Boolean, default: false },
+    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+    rejectionReason: { type: String, default: "" },
   },
   { timestamps: true }
 );
 
-productSchema.index({ name: "text", description: "text", categoryName: "text", subcategoryName: "text" });
+productSchema.index({
+  name: "text",
+  description: "text",
+  categoryName: "text",
+  subcategoryName: "text",
+  sellerCity: "text",
+  materials: "text",
+});
 
 export default model<IProduct>("Product", productSchema);

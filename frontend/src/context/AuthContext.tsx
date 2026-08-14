@@ -7,6 +7,7 @@ interface RegisterPayload {
   email: string;
   password: string;
   role: "buyer" | "seller";
+  phone?: string;
   recaptchaToken?: string;
   sellerProfile?: {
     city: string;
@@ -27,8 +28,6 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  // Registration no longer logs the user in immediately — it sends an OTP
-  // and the caller should route to the verify-email page.
   register: (payload: RegisterPayload) => Promise<{ email: string }>;
   verifyOtp: (email: string, otp: string) => Promise<void>;
   resendOtp: (email: string) => Promise<void>;
@@ -53,9 +52,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, []);
 
-  // If the axios layer detects a stale/expired token (server returned 401),
-  // reflect that in the UI immediately — e.g. the navbar switches back to
-  // "Login / Register" — without forcing a disruptive page navigation.
   useEffect(() => {
     const handleSessionExpired = () => setUser(null);
     window.addEventListener("hunar:session-expired", handleSessionExpired);

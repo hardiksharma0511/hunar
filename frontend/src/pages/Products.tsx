@@ -14,6 +14,14 @@ const sortOptions = [
   { value: "price_desc", label: "Price: High to Low" },
 ];
 
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
+  "Uttarakhand", "West Bengal", "Delhi", "Jammu and Kashmir", "Ladakh", "Puducherry",
+];
+
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
@@ -23,6 +31,7 @@ const Products = () => {
 
   const search = searchParams.get("search") || "";
   const category = searchParams.get("category") || "";
+  const state = searchParams.get("state") || "";
   const sort = searchParams.get("sort") || "newest";
   const minPrice = searchParams.get("minPrice") || "";
   const maxPrice = searchParams.get("maxPrice") || "";
@@ -36,6 +45,7 @@ const Products = () => {
     const params: Record<string, string> = { sort };
     if (search) params.search = search;
     if (category) params.category = category;
+    if (state) params.state = state;
     if (minPrice) params.minPrice = minPrice;
     if (maxPrice) params.maxPrice = maxPrice;
 
@@ -43,7 +53,7 @@ const Products = () => {
       .get("/products", { params })
       .then((res) => setProducts(res.data.products))
       .finally(() => setLoading(false));
-  }, [search, category, sort, minPrice, maxPrice]);
+  }, [search, category, state, sort, minPrice, maxPrice]);
 
   const updateParam = (key: string, value: string) => {
     const next = new URLSearchParams(searchParams);
@@ -63,7 +73,6 @@ const Products = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Filters sidebar */}
         <aside className="lg:w-64 shrink-0">
           <button
             className="lg:hidden flex items-center gap-2 mb-4 text-sm font-medium text-terracotta"
@@ -92,6 +101,20 @@ const Products = () => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            <div>
+              <h3 className="font-medium mb-3">State / Region</h3>
+              <select
+                value={state}
+                onChange={(e) => updateParam("state", e.target.value)}
+                className="w-full rounded-lg border border-terracotta/20 bg-ivory px-3 py-2 text-sm focus:outline-none"
+              >
+                <option value="">All of India</option>
+                {INDIAN_STATES.map((s) => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -129,7 +152,6 @@ const Products = () => {
           </div>
         </aside>
 
-        {/* Grid */}
         <div className="flex-1">
           {loading ? (
             <Spinner className="py-24" />

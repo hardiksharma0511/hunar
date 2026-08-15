@@ -73,9 +73,11 @@ const Login = () => {
         <p className="text-center text-sm text-charcoal/60">
           Don't have an account? <Link to="/register" className="text-terracotta font-medium">Register here</Link>
         </p>
-        <p className="text-center text-xs text-charcoal/40">
-          Demo login: buyer@hunar.demo / password123
-        </p>
+        {/*
+<p className="text-center text-xs text-charcoal/40">
+  Demo login: buyer@hunar.demo / password123
+</p>
+*/}
       </form>
     </div>
   );

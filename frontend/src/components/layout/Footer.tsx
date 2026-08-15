@@ -45,9 +45,7 @@ export const Footer = () => (
       <div>
         <h4 className="font-display text-lg mb-4">Get in Touch</h4>
         <ul className="space-y-3 text-sm text-ivory/60">
-          <li className="flex items-center gap-2"><MapPin className="w-4 h-4 text-gold" /> Ranikhet, Uttarakhand, India</li>
           <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-gold" /> support.hunar@gmail.com</li>
-          <li className="flex items-center gap-2"><Phone className="w-4 h-4 text-gold" /> +91 63998 67305</li>
         </ul>
       </div>
     </div>

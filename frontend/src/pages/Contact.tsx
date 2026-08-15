@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Phone, MapPin, CheckCircle2 } from "lucide-react";
+import { Mail, CheckCircle2 } from "lucide-react";
 import api from "../lib/axios";
 import { Button } from "../components/ui/Button";
 import { Recaptcha } from "../components/ui/Recaptcha";
@@ -44,19 +44,11 @@ const Contact = () => {
       <div className="grid md:grid-cols-2 gap-10 max-w-4xl mx-auto">
         <div className="space-y-6">
           <div className="flex items-start gap-4">
-            <MapPin className="w-5 h-5 text-terracotta mt-1" />
-            <div><p className="font-medium">Address</p><p className="text-sm text-charcoal/60">Ranikhet, Uttarakhand, India</p></div>
-          </div>
-          <div className="flex items-start gap-4">
             <Mail className="w-5 h-5 text-terracotta mt-1" />
             <div>
               <p className="font-medium">Email</p>
               <a href={`mailto:${SUPPORT_EMAIL}`} className="text-sm text-charcoal/60 hover:text-terracotta">{SUPPORT_EMAIL}</a>
             </div>
-          </div>
-          <div className="flex items-start gap-4">
-            <Phone className="w-5 h-5 text-terracotta mt-1" />
-            <div><p className="font-medium">Phone</p><p className="text-sm text-charcoal/60">+91 63998 67305</p></div>
           </div>
         </div>
 

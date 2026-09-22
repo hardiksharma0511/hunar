@@ -3,10 +3,10 @@
 ### Handmade Marketplace for Indian Artisans
 
 > **Preserving Indian craftsmanship through technology.**
-
+ 
 HUNAR is a full-stack marketplace where artisans can showcase and sell handmade products directly to customers. The platform focuses on traditional Indian art while providing a modern and seamless shopping experience.
 
----
+--- 
 
 ## ✨ Highlights
 

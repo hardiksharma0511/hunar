@@ -1,4 +1,4 @@
- # 🎨 HUNAR
+# 🎨 HUNAR
 
 ### Handmade Marketplace for Indian Artisans
 

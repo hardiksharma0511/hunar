@@ -1,5 +1,5 @@
-# 🎨 HUNAR 
- 
+# 🎨 HUNAR
+
 ### Handmade Marketplace for Indian Artisans 
  
 > **Preserving Indian craftsmanship through technology.**

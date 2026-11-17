@@ -11,7 +11,7 @@ HUNAR is a full-stack marketplace where artisans can showcase and sell handmade 
 ## ✨ Highlights
   
 - 👤 Buyer & Seller Authentication  
-- 🎨 Artisan Profiles
+- 🎨 Artisan Profiles 
 - 🛍️ Product Listings & Categories
 - ❤️ Wishlist & Shopping Cart
 - 📦 Order Management
